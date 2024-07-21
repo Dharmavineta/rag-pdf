@@ -29,6 +29,13 @@ def get_text_chunks(raw_text):
     return chunks
 
 
+def get_vectorStore(text_chunks):
+    embeddings= OllamaEmbeddings(model='nomic-embed-text', show_progress=True)
+    vectorStore= FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+
+
+
+
 
 def main():
     st.set_page_config(page_title="Chat with multiple PDFs", page_icon=":books:")
@@ -44,6 +51,8 @@ def main():
 
 
                 text_chunks= get_text_chunks(raw_text)
+
+                vector_db=get_vectorStore(text_chunks)
                 
             
 
