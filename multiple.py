@@ -9,9 +9,11 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from PyPDF2 import PdfReader
 from langchain_text_splitters import TextSplitter
+from langchain.memory import ConversationBufferMemory
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import history_aware_retriever
 
 def get_pdf_text(pdf_docs):
-    print("hello")
     text=""
     for pdf in pdf_docs:
         pdf_reader= PdfReader(pdf)
@@ -35,6 +37,12 @@ def get_vectorStore(text_chunks):
     return vectorStore
 
 
+def get_conversation_chain():
+    memory= ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    
+
+
+
 
 
 
@@ -54,6 +62,8 @@ def main():
                 text_chunks= get_text_chunks(raw_text)
 
                 vector_db=get_vectorStore(text_chunks)
+
+                conversation=get_conversation_chain(vector_db)
                 
             
 
