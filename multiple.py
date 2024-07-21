@@ -32,6 +32,7 @@ def get_text_chunks(raw_text):
 def get_vectorStore(text_chunks):
     embeddings= OllamaEmbeddings(model='nomic-embed-text', show_progress=True)
     vectorStore= FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+    return vectorStore
 
 
 
