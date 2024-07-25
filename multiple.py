@@ -368,7 +368,7 @@ import ollama
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.chat_models import ChatOllama
@@ -413,7 +413,9 @@ def extract_model_names(
     return model_names
 
 
-def create_vector_db(file_upload) -> Chroma:
+def create_vector_db(file_upload) -> FAISS:
+    persist_directory='/embed'
+    pdf_path='gold.pdf'
     """
     Create a vector database from an uploaded PDF file.
 
@@ -421,34 +423,25 @@ def create_vector_db(file_upload) -> Chroma:
         file_upload (st.UploadedFile): Streamlit file upload object containing the PDF.
 
     Returns:
-        Chroma: A vector store containing the processed document chunks.
+        Faiss: A vector store containing the processed document chunks.
     """
     logger.info(f"Creating vector DB from file upload: {file_upload.name}")
-    temp_dir = tempfile.mkdtemp()
+    data= PyMuPDFLoader(pdf_path).load()
 
-    path = os.path.join(temp_dir, file_upload.name)
-    with open(path, "wb") as f:
-        f.write(file_upload.getvalue())
-        logger.info(f"File saved to temporary path: {path}")
-        loader = PyMuPDFLoader(path)
-        data = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
     chunks = text_splitter.split_documents(data)
     logger.info("Document split into chunks")
 
     embeddings = OllamaEmbeddings(model="nomic-embed-text", show_progress=True)
-    vector_db = Chroma.from_documents(
-        documents=chunks, embedding=embeddings, collection_name="myRAG"
+    vector_db = FAISS.from_documents(
+        documents=chunks, embedding=embeddings
     )
     logger.info("Vector DB created")
-
-    shutil.rmtree(temp_dir)
-    logger.info(f"Temporary directory {temp_dir} removed")
     return vector_db
 
 
-def process_question(question: str, vector_db: Chroma, selected_model: str) -> str:
+def process_question(question: str, vector_db: FAISS, selected_model: str) -> str:
     """
     Process a user question using the vector database and selected language model.
 
@@ -519,7 +512,7 @@ def extract_all_pages_as_images(file_upload) -> List[Any]:
     return pdf_pages
 
 
-def delete_vector_db(vector_db: Optional[Chroma]) -> None:
+def delete_vector_db(vector_db: Optional[FAISS]) -> None:
     """
     Delete the vector database and clear related session state.
 
