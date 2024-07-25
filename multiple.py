@@ -365,7 +365,7 @@ import shutil
 import pdfplumber
 import ollama
 
-from langchain_community.document_loaders import UnstructuredPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
@@ -430,7 +430,7 @@ def create_vector_db(file_upload) -> Chroma:
     with open(path, "wb") as f:
         f.write(file_upload.getvalue())
         logger.info(f"File saved to temporary path: {path}")
-        loader = UnstructuredPDFLoader(path)
+        loader = PyMuPDFLoader(path)
         data = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
