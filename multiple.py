@@ -426,7 +426,7 @@ def create_vector_db(file_upload) -> FAISS:
         Faiss: A vector store containing the processed document chunks.
     """
     logger.info(f"Creating vector DB from file upload: {file_upload.name}")
-    data= PyMuPDFLoader(pdf_path).load()
+    data= PyMuPDFLoader(file_path=pdf_path).load()
 
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
@@ -434,9 +434,19 @@ def create_vector_db(file_upload) -> FAISS:
     logger.info("Document split into chunks")
 
     embeddings = OllamaEmbeddings(model="nomic-embed-text", show_progress=True)
-    vector_db = FAISS.from_documents(
-        documents=chunks, embedding=embeddings
-    )
+    if os.path.exists(persist_directory) and os.listdir(persist_directory):
+        vector_db = FAISS.load_local(persist_directory, embeddings, allow_dangerous_deserialization=True)
+    else:
+        print("Creating new vector store...")
+        vector_db = FAISS.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        
+        
+       )
+    vector_db.save_local(persist_directory)
+    
+   
     logger.info("Vector DB created")
     return vector_db
 
